@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extractor web version</title>
+
+<link rel="icon" type="image/png" href="favicon1616.png" sizes="16x16" />
+<link rel="stylesheet"
+	href="./bower_components/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet"
+	href="./bower_components/bootstrap/dist/css/bootstrap-theme.min.css" />
+<script type="text/javascript"
+	src="./bower_components/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript"
+	src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script type="text/javascript"
+	src="./bower_components/angular/angular.min.js"></script>
+<script type="text/javascript"
+	src="./bower_components/angular-resource/angular-resource.min.js"></script>
+<script type="text/javascript" src="./app/app.js"></script>
+<script type="text/javascript" src="./app/controllers.js"></script>
+<script type="text/javascript" src="./app/services.js"></script>
+<script type="text/javascript">
+	$(function() {
+		$("#header").load("header.html");
+		$("#footer").load("footer.html");
+	});
+	$(document).ready(function() {
+		$("#myTab li:eq(1) a").tab('show');
+	});
+</script>
+
+</head>
+<body ng-controller="AppController">
+
+	<div id="header"></div>
+	<form ng-submit="postExtractionJSON(myAtlas.id)">
+		<div class="container">
+			<div class="jumbotron">
+				<h1>Extractor Web version</h1>
+				<p>Atlas selection</p>
+				<div class="form-group">
+					<label for="sel1">Select ATLAS:</label> 
+					<select	class="input-xxlarge" 
+						ng-model="myAtlas"
+						ng-options="item.atlas for item in items"
+						ng-change="update(myAtlas)">
+					</select>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-6">
+						<h2 class="text-center">Contrasts</h2>						
+						<div class="bs-example">
+							<ul class="nav nav-tabs" id="myTab" ng-click="updateCon()">
+								<li><a data-toggle="tab" href="#anat" ng-click="corrChecked = false">Anat</a></li>
+								<li><a data-toggle="tab" href="#bold" ng-click="corrChecked = false">BOLD</a></li>
+								<li class="dropdown"><a data-toggle="dropdown"
+									class="dropdown-toggle" href="#">Correlation <b
+										class="caret"></b></a>
+									<ul class="dropdown-menu">
+										<li><a data-toggle="tab" href="#anatCorr" ng-click="corrChecked = true">Corr Anat</a></li>
+										<li><a data-toggle="tab" href="#boldCorr" ng-click="corrChecked = true">Corr BOLD</a></li>
+									</ul></li>
+							</ul>
+							<div class="tab-content">
+								<div id="anat" class="tab-pane fade in active">
+									<h3 class="text-center">Anat</h3>
+									<div class="col-lg-6 col-lg-offset-3">
+										<div class="well" style="max-height: 300px; overflow: auto;">
+											<ul class="list-group" ng-repeat="x in getConanat(myAtlas.id)">
+												<input type="checkbox"
+													ng-checked="extraction.anatcon.indexOf(x) > -1"
+													ng-click="toggleSelAnatCon(x)" value="{{x}}"> {{x}}
+											</ul>
+										</div>
+									</div>
+								</div>
+								<div id="bold" class="tab-pane fade">
+									<h3 class="text-center">BOLD</h3>
+									<div class="col-lg-6 col-lg-offset-3">
+										<div class="well" style="max-height: 300px; overflow: auto;">
+											<ul class="list-group" ng-repeat="x in getConbold(myAtlas.id)">
+												<input type="checkbox"
+													ng-checked="extraction.boldcon.indexOf(x) > -1"
+													ng-click="toggleSelBoldCon(x)" value="{{x}}"> {{x}}
+											</ul>
+										</div>
+									</div>
+								</div>
+								<div id="anatCorr" class="tab-pane fade">
+									<h3 class="text-center">Correlated Anat</h3>
+									<div class="col-lg-6 col-lg-offset-3">
+										<div class="well" style="max-height: 300px; overflow: auto;">
+											<ul class="list-group"
+												ng-repeat="x in getConcorranat(myAtlas.id)">
+												<input type="checkbox"
+													ng-checked="extraction.corranatcon.indexOf(x) > -1"
+													ng-click="toggleSelCorrAnatCon(x)" value="{{x}}">
+												{{x}}
+											</ul>
+										</div>
+									</div>
+								</div>
+								<div id="boldCorr" class="tab-pane fade">
+									<h3 class="text-center">Correlated BOLD</h3>
+									<div class="col-lg-6 col-lg-offset-3">
+										<div class="well" style="max-height: 300px; overflow: auto;">
+											<ul class="list-group"
+												ng-repeat="x in getConcorrbold(myAtlas.id)">
+												<input type="checkbox"
+													ng-checked="extraction.corrboldcon.indexOf(x) > -1"
+													ng-click="toggleSelCorrBoldCon(x)" value="{{x}}">
+												{{x}}
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-6 col-lg-offset-3">
+							<form name="myForm">
+								<h4>Custom contrast</h4>
+								<h5>Formula (SPM type, e.g. i1+i2):</h5>
+								<!-- <input type="text" name="input" ng-model="extraction.custom" ng-pattern="/^\w+$/" ng-trim="false" required> -->
+								<input type="text" name="input" ng-model="extraction.custom"> 
+								<h5>Contrast name:</h5>
+								<input type="text" name="input" ng-model="extraction.customname"> 
+								<div role="alert">
+									<span class="error" ng-show="myForm.userName.$error.required"> Required!</span> 
+									<span class="error" ng-show="myForm.input.$error.pattern"> Single word only!</span>
+								</div>								
+							</form>							
+						</div>
+					</div>
+					<div class="col-lg-6">
+							<h2 class="text-center">Regions</h2>							
+							<div class="row">
+
+							<div class="check-element animate-show" ng-show="corrChecked">
+								<div class="col-lg-6">
+									<div class="well" style="max-height: 365px; overflow: auto;">
+										<ul class="list-group" ng-repeat="x in getRoi(myAtlas.id)">
+											<label> <input type="checkbox"
+												ng-checked="extraction.roi.indexOf(x) > -1"
+												ng-click="toggleSelectionRoi(x,myAtlas.id)" value="{{x}}">
+												{{x}}
+											</label>
+										</ul>
+									</div>
+								</div>
+								<div class="col-lg-6">
+									<div class="well" style="max-height: 365px; overflow: auto;">
+										<ul class="list-group" ng-repeat="x in getRoi(myAtlas.id)">
+											<label> <input type="checkbox"
+												ng-checked="extraction.bisroi.indexOf(x) > -1"
+												ng-click="toggleSelectionRoiBis(x,myAtlas.id)" value="{{x}}">
+												{{x}}
+											</label>
+										</ul>
+									</div>
+								</div>
+							</div>
+
+							<div class="check-element animate-show" ng-hide="corrChecked">
+								<div class="col-lg-6 col-lg-offset-3">
+									<label> <input type="checkbox"
+										ng-model="extraction.asymmetry" ng-click="updateRoi()"> Asymmetry
+									</label>
+									<div class="well" style="max-height: 365px; overflow: auto;">
+										<ul class="list-group" ng-repeat="x in getRoi(myAtlas.id)">
+											<label> <input type="checkbox"
+												ng-checked="extraction.roi.indexOf(x) > -1"
+												ng-click="toggleSelectionRoi(x,myAtlas.id)" value="{{x}}">
+												{{x}}
+											</label>
+										</ul>
+									</div>
+								</div>
+							</div>
+
+						</div>			
+							<div class="text-center">
+								<div class="btn-group">
+									<label class="btn btn-primary" ng-click="toggleAllRoi(myAtlas.id)"> All ROI's </label> <label
+										class="btn btn-primary" ng-click="toggleLhRoi(myAtlas.id)" ng-disabled="extraction.asymmetry"> Left Hemi. </label> <label
+										class="btn btn-primary" ng-click="toggleRhRoi(myAtlas.id)" ng-disabled="extraction.asymmetry"> Right Hemi. </label>
+								</div>
+							</div>
+
+						</div>
+				</div>
+				<br> 
+					<center><input type="submit" value="Submit"
+					class="btn btn-primary"/></center>
+				<hr>
+				<div class="row">			
+					<div class="col-xs-12" >
+						<div id="footer"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</body>
+</html>
